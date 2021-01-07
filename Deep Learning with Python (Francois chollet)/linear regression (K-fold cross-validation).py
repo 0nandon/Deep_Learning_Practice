@@ -60,7 +60,7 @@ def smooth_curve(points, factor = 0.9):
   for point in points:
     if smoothed_points:
       previous = smoothed_points[-1]
-      next = previous * factor + point * (1 - factor)
+      next = previous * factor + point * (1 - factor) # 그래프를 부드럽게 만들기 위해 
       smoothed_points.append(next)
     else:
       smoothed_points.append(point)
