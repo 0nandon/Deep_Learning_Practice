@@ -66,20 +66,52 @@ for fname in fnames:
   dst = os.path.join(test_dogs_dir, fname)
   shutil.copyfile(src, dst)
 
-train_datagen = ImageDataGenerator(rescale=1./255) # 리스케일링을 한다.
+"""
+# 데이터 증식 실험
+
+fnames = sorted([os.path.join(train_cats_dir, fname) for fname in os.listdir(train_cats_dir)])
+
+img_path = fnames[3]
+
+img = image.load_img(img_path, target_size=(150, 150))
+x = image.img_to_array(img) # 넘파이 배열로 변경
+x = x.reshape((1,) + x.shape)
+
+i = 0
+for batch in datagen.flow(x, batch_size=1):
+  plt.figure(i)
+  imgplot = plt.imshow(image.array_to_img(batch[0]))
+  i += 1
+  if i % 4 == 0:
+    break
+
+plt.show()
+"""
+
+train_datagen = ImageDataGenerator(
+    rescale=1./255,
+    rotation_range=40, # 랜덤하게 사진을 회전시킬 각도 범위
+    width_shift_range=0.2, # 사진을 수평으로 랜덤하게 평행이동 
+    height_shift_range=0.2, # 사진을 수직으로 랜덤하게 평행이동
+    shear_range=0.2, # 랜덤하게 전단 변환을 적용할 각도 범위
+    zoom_range=0.3, # 랜덤하게 사진을 확대할 범위
+    horizontal_flip=True, # 램덤하게 이미지를 수평으로 뒤집는다.
+    fill_mode='nearest' # 회전이나 가로, 세로 이동으로 인해 새롭게 생성해야 할 픽셀을 채울 전략
+)
+
 test_datagen = ImageDataGenerator(rescale=1./255)
 
 train_generator = train_datagen.flow_from_directory(
     train_dir,
     target_size=(150, 150),
-    batch_size=20,
+    batch_size=32,
     class_mode='binary'
 )
 
 validation_generator = test_datagen.flow_from_directory(
     validation_dir,
     target_size=(150, 150),
-    batch_size=20,
+    batch_size=32,
     class_mode='binary'
 )
 
@@ -94,6 +126,7 @@ R = Conv2D(128, (3, 3), activation = 'relu')(R)
 R = MaxPooling2D((2, 2))(R)
 R = Flatten()(R)
 
+R = Dropout(0.5)(R)
 R = Dense(512)(R)
 R = Activation('relu')(R)
 R = Dense(1)(R)
@@ -104,7 +137,7 @@ model.compile(loss = 'binary_crossentropy', optimizer = RMSprop(lr = 1e-4), metr
 history = model.fit_generator(
     train_generator,
     steps_per_epoch=100,
-    epochs=30,
+    epochs=100,
     validation_data=validation_generator,
     validation_steps=50
 )
@@ -112,7 +145,7 @@ history = model.fit_generator(
 model.save('cats_and_dogs_small_1.h5')
 
 acc = history.history['acc']
-val_acc = history.host['val_acc']
+val_acc = history.history['val_acc']
 loss = history.history['loss']
 val_loss = history.history['val_loss']
 
@@ -125,8 +158,8 @@ plt.legend()
 
 plt.figure()
 
-plt.plot(epochs, acc, 'bp', label='Training loss')
-plt.plot(epochs, val_acc, 'b', label='Validation loss')
+plt.plot(epochs, loss, 'bp', label='Training loss')
+plt.plot(epochs, val_loss, 'b', label='Validation loss')
 plt.title('Training and validation loss')
 plt.legend()
 
