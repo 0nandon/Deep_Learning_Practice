@@ -88,6 +88,7 @@ for batch in datagen.flow(x, batch_size=1):
 plt.show()
 """
 
+"""
 train_datagen = ImageDataGenerator(
     rescale=1./255,
     rotation_range=40, # 랜덤하게 사진을 회전시킬 각도 범위
@@ -143,6 +144,76 @@ history = model.fit_generator(
 )
 
 model.save('cats_and_dogs_small_1.h5')
+"""
+
+# 위 코드는 케라스 버전 업데이트로 오류가 난다. 아래는 오류를 해결한 데이터 증식을 이용한 CNN 코드이다.
+base_dir = '/content/cats_and_dogs_small'
+train_dir = os.path.join(base_dir, 'train')
+validation_dir = os.path.join(base_dir, 'validation')
+test_dir = os.path.join(base_dir, 'test')
+
+def extract_features(directory, datagen, size, batch_size = 32):
+  inputs = np.zeros((batch_size, 150, 150, 3))
+  labels = np.zeros((batch_size,))
+
+  generator = datagen.flow_from_directory(
+      directory,
+      target_size = (150, 150),
+      batch_size = batch_size,
+      class_mode = 'binary'
+  )
+
+  i=0
+  for inputs_batch, labels_batch in generator:
+    inputs = np.append(inputs, inputs_batch, axis = 0)
+    labels = np.append(labels, labels_batch, axis = 0)
+    if inputs.shape[0] >= batch_size * size:
+      break
+  
+  inputs = np.delete(inputs, range(32), axis = 0)
+  labels = np.delete(labels, range(32), axis = 0)
+  return inputs, labels
+
+train_datagen = ImageDataGenerator(
+    rescale=1./255,
+    rotation_range=40, # 랜덤하게 사진을 회전시킬 각도 범위
+    width_shift_range=0.2, # 사진을 수평으로 랜덤하게 평행이동 
+    height_shift_range=0.2, # 사진을 수직으로 랜덤하게 평행이동
+    shear_range=0.2, # 랜덤하게 전단 변환을 적용할 각도 범위
+    zoom_range=0.2, # 랜덤하게 사진을 확대할 범위
+    horizontal_flip=True, # 램덤하게 이미지를 수평으로 뒤집는다.
+  )
+
+test_datagen = ImageDataGenerator(rescale=1./255)
+
+train_x, train_y = extract_features(train_dir, train_datagen, 100)
+validation_x, validation_y = extract_features(validation_dir, test_datagen, 50)
+
+input = Input(shape = (150, 150, 3,))
+R = Conv2D(32, (3, 3), activation = 'relu')(input)
+R = MaxPooling2D((2, 2))(R)
+R = Conv2D(64, (3, 3), activation = 'relu')(R)
+R = MaxPooling2D((2, 2))(R)
+R = Conv2D(128, (3, 3), activation = 'relu')(R)
+R = MaxPooling2D((2, 2))(R)
+R = Conv2D(128, (3, 3), activation = 'relu')(R)
+R = MaxPooling2D((2, 2))(R)
+R = Flatten()(R)
+
+R = Dropout(0.5)(R)
+R = Dense(512)(R)
+R = Activation('relu')(R)
+R = Dense(1)(R)
+R = Activation('sigmoid')(R)
+model = Model(inputs = [input], outputs = R)
+
+model.compile(loss = 'binary_crossentropy', optimizer = RMSprop(lr = 1e-4), metrics = ['acc'])
+history = model.fit(
+    train_x, train_y,
+    epochs=100,
+    batch_size = 20,
+    validation_data = (validation_x, validation_y)
+)
 
 acc = history.history['acc']
 val_acc = history.history['val_acc']
