@@ -9,8 +9,8 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import load_model
 from tensorflow.keras.applications.vgg16 import VGG16
 
-# ¹Ì¼¼ Á¶Á¤Àº Æ¯¼º ÃßÃâ¿¡ »ç¿ëÇß´ø µ¿°á ¸ğµ¨ÀÇ »óÀ§ Ãş ¸î °³¸¦ µ¿°á¿¡¼­ ÇØÁ¦ÇÏ°í ¸ğµ¨¿¡ »õ·Î Ãß°¡ÇÑ Ãş°ú ÇÔ²² ÈÆ·ÃÇÏ´Â °Í
-# ÇÕ¼º°ö ±â¹İ Ãş¿¡ ÀÖ´Â ÇÏÀ§ ÃşµéÀº Á» ´õ ÀÏ¹İÀûÀÌ°í Àç»ç¿ë °¡´ÉÇÑ Æ¯¼ºµéÀ» ÀÎÄÚµù ÇÏ¹Ç·Î Àç»ç¿ë °¡´É
+# ë¯¸ì„¸ ì¡°ì •ì€ íŠ¹ì„± ì¶”ì¶œì— ì‚¬ìš©í–ˆë˜ ë™ê²° ëª¨ë¸ì˜ ìƒìœ„ ì¸µ ëª‡ ê°œë¥¼ ë™ê²°ì—ì„œ í•´ì œí•˜ê³  ëª¨ë¸ì— ìƒˆë¡œ ì¶”ê°€í•œ ì¸µê³¼ í•¨ê»˜ í›ˆë ¨í•˜ëŠ” ê²ƒ
+# í•©ì„±ê³± ê¸°ë°˜ ì¸µì— ìˆëŠ” í•˜ìœ„ ì¸µë“¤ì€ ì¢€ ë” ì¼ë°˜ì ì´ê³  ì¬ì‚¬ìš© ê°€ëŠ¥í•œ íŠ¹ì„±ë“¤ì„ ì¸ì½”ë”© í•˜ë¯€ë¡œ ì¬ì‚¬ìš© ê°€ëŠ¥
 
 base_dir = '/content/cats_and_dogs_small'
 train_dir = os.path.join(base_dir, 'train')
@@ -19,12 +19,12 @@ test_dir = os.path.join(base_dir, 'test')
 
 train_datagen = ImageDataGenerator(
     rescale=1./255,
-    rotation_range=40, # ·£´ıÇÏ°Ô »çÁøÀ» È¸Àü½ÃÅ³ °¢µµ ¹üÀ§
-    width_shift_range=0.2, # »çÁøÀ» ¼öÆòÀ¸·Î ·£´ıÇÏ°Ô ÆòÇàÀÌµ¿ 
-    height_shift_range=0.2, # »çÁøÀ» ¼öÁ÷À¸·Î ·£´ıÇÏ°Ô ÆòÇàÀÌµ¿
-    shear_range=0.2, # ·£´ıÇÏ°Ô Àü´Ü º¯È¯À» Àû¿ëÇÒ °¢µµ ¹üÀ§
-    zoom_range=0.2, # ·£´ıÇÏ°Ô »çÁøÀ» È®´ëÇÒ ¹üÀ§
-    horizontal_flip=True, # ·¥´ıÇÏ°Ô ÀÌ¹ÌÁö¸¦ ¼öÆòÀ¸·Î µÚÁı´Â´Ù.
+    rotation_range=40, # ëœë¤í•˜ê²Œ ì‚¬ì§„ì„ íšŒì „ì‹œí‚¬ ê°ë„ ë²”ìœ„
+    width_shift_range=0.2, # ì‚¬ì§„ì„ ìˆ˜í‰ìœ¼ë¡œ ëœë¤í•˜ê²Œ í‰í–‰ì´ë™ 
+    height_shift_range=0.2, # ì‚¬ì§„ì„ ìˆ˜ì§ìœ¼ë¡œ ëœë¤í•˜ê²Œ í‰í–‰ì´ë™
+    shear_range=0.2, # ëœë¤í•˜ê²Œ ì „ë‹¨ ë³€í™˜ì„ ì ìš©í•  ê°ë„ ë²”ìœ„
+    zoom_range=0.2, # ëœë¤í•˜ê²Œ ì‚¬ì§„ì„ í™•ëŒ€í•  ë²”ìœ„
+    horizontal_flip=True, # ë¨ë¤í•˜ê²Œ ì´ë¯¸ì§€ë¥¼ ìˆ˜í‰ìœ¼ë¡œ ë’¤ì§‘ëŠ”ë‹¤.
 )
 
 test_datagen = ImageDataGenerator(rescale=1./255)
@@ -45,7 +45,7 @@ validation_generator = test_datagen.flow_from_directory(
 
 conv_base = VGG16(weights = 'imagenet', include_top = False, input_shape = (150, 150, 3))
 
-# ÇÕ¼º°ö ±â¹İ Ãş¿¡ ÀÇÇØ »çÀü¿¡ ÇĞ½ÀµÈ Ç¥ÇöÀÌ ÈÆ·ÃÇÏ´Â µ¿¾È ¼öÁ¤µÇÁö ¾Êµµ·Ï conv_base¸¦ µ¿°á
+# í•©ì„±ê³± ê¸°ë°˜ ì¸µì— ì˜í•´ ì‚¬ì „ì— í•™ìŠµëœ í‘œí˜„ì´ í›ˆë ¨í•˜ëŠ” ë™ì•ˆ ìˆ˜ì •ë˜ì§€ ì•Šë„ë¡ conv_baseë¥¼ ë™ê²°
 conv_base.trainable = True
 
 set_trainable = False
