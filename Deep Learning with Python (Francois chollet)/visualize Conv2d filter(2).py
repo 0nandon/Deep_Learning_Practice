@@ -9,14 +9,14 @@ from tensorflow.keras.preprocessing import image
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.models import load_model
 from tensorflow.keras.applications.vgg16 import VGG16
-from keras import backend as K # ÄÉ¶ó½º ¹é¿£µå ÇÔ¼ö
+from keras import backend as K # ì¼€ë¼ìŠ¤ ë°±ì—”ë“œ í•¨ìˆ˜
 
 model = VGG16(weights='imagenet', include_top=False)
 
 layer_name = 'block3_conv1'
-filter_index = 0 # block3_conv1 ÃşÀÇ Ã¹ ¹øÂ° Ã¤³ÎÀÇ ÇÊÅÍ¿¡ ´ëÇÏ¿© °æ»ç »ó½Â¹ıÀ» ½ÃÇàÇÑ´Ù.
+filter_index = 0 # block3_conv1 ì¸µì˜ ì²« ë²ˆì§¸ ì±„ë„ì˜ í•„í„°ì— ëŒ€í•˜ì—¬ ê²½ì‚¬ ìƒìŠ¹ë²•ì„ ì‹œí–‰í•œë‹¤.
 
-# °á°ú·Î ³ª¿Â ÀÌ¹ÌÁö ÅÙ¼­¸¦ Ãâ·Â °¡´ÉÇÑ ÀÌ¹ÌÁö·Î º¯°æÇÏ±â À§ÇØ ÈÄÃ³¸®ÇÒ ÇÊ¿ä°¡ ÀÖ´Ù.
+# ê²°ê³¼ë¡œ ë‚˜ì˜¨ ì´ë¯¸ì§€ í…ì„œë¥¼ ì¶œë ¥ ê°€ëŠ¥í•œ ì´ë¯¸ì§€ë¡œ ë³€ê²½í•˜ê¸° ìœ„í•´ í›„ì²˜ë¦¬í•  í•„ìš”ê°€ ìˆë‹¤.
 def deprocess_image(x):
   x -= x.mean()
   x /= (x.std() + 1e-5)
@@ -38,11 +38,11 @@ def generate_pattern(layer_name, filter_index, size=150):
 
     grads = K.gradients(loss, model.input)[0]
 
-    grads /= (K.sqrt(K.mean(K.square(grads))) + 1e-5) # °æ»ç »ó½Â¹ı °úÁ¤À» ºÎµå·´°Ô ÇÏ±â À§ÇØ, ±×·¡µğ¾ğÆ® ÅÙ¼­¸¦ L2 ³ë¸§À¸·Î ³ª´©¾î Á¤±ÔÈ­ÇÑ´Ù.
+    grads /= (K.sqrt(K.mean(K.square(grads))) + 1e-5) # ê²½ì‚¬ ìƒìŠ¹ë²• ê³¼ì •ì„ ë¶€ë“œëŸ½ê²Œ í•˜ê¸° ìœ„í•´, ê·¸ë˜ë””ì–¸íŠ¸ í…ì„œë¥¼ L2 ë…¸ë¦„ìœ¼ë¡œ ë‚˜ëˆ„ì–´ ì •ê·œí™”í•œë‹¤.
     iterate = K.function([model.input], [loss, grads])
-    input_img_data = np.random.random((1, size, size, 3)) * 20 + 128. # ÀâÀ½ÀÌ ¼¯ÀÎ È¸»ö ÀÌ¹ÌÁö·Î ½ÃÀÛÇÑ´Ù.
+    input_img_data = np.random.random((1, size, size, 3)) * 20 + 128. # ì¡ìŒì´ ì„ì¸ íšŒìƒ‰ ì´ë¯¸ì§€ë¡œ ì‹œì‘í•œë‹¤.
     
-    # ÇÊÅÍ¿¡ ´ëÇÑ ÀÀ´äÀ» ÃÖ´ëÈ­ ÇÏ±â À§ÇØ °æ»ç »ó½Â¹ıÀ» ½ÃÇàÇÑ´Ù.
+    # í•„í„°ì— ëŒ€í•œ ì‘ë‹µì„ ìµœëŒ€í™” í•˜ê¸° ìœ„í•´ ê²½ì‚¬ ìƒìŠ¹ë²•ì„ ì‹œí–‰í•œë‹¤.
     step = 1.
     for _ in range(40):
         loss_value, grads_value = iterate([input_img_data])
