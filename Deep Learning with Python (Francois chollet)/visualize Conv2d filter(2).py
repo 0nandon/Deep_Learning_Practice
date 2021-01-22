@@ -2,12 +2,6 @@ import os, shutil
 import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Dense, Activation, Conv2D, MaxPooling2D, Flatten, Dropout
-from tensorflow.keras.optimizers import RMSprop
-from tensorflow.keras.preprocessing import image
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from tensorflow.keras.models import load_model
 from tensorflow.keras.applications.vgg16 import VGG16
 from keras import backend as K # 케라스 백엔드 함수
 
