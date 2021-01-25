@@ -41,3 +41,14 @@ heatmap = np.maximum(heatmap, 0)
 heatmap /= np.max(heatmap)
 plt.matshow(heatmap)
 
+# ============= OpenCV를 사용하여 앞에서 얻은 히트맵에 원본 이미지를 겹친 이미지 만들기 ============= #
+
+img = cv2.imread(img_path)  # cv2 모듈을 사용하여 원본 이미지를 로드한다.
+heatmap = cv2.resize(heatmap, (img.shape[1], img.shape[0]))
+
+heatmap = np.uint8(255 * heatmap)  # heatmap을 RGB 형식으로 포맷
+heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
+
+superimposed_img = heatmap * 0.4 + img
+cv2.imwrite('/content/elephant_cam.jpg', superimposed_img)
+
