@@ -5,6 +5,7 @@ from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications.vgg16 import VGG16, decode_predictions
 from tensorflow.keras.applications.imagenet_utils import preprocess_input
 from keras import backend as K # 케라스 백엔드 함수
+import cv2
 
 model = VGG16(weights='imagenet', include_top=True)
 
