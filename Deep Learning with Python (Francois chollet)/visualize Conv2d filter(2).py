@@ -46,3 +46,27 @@ def generate_pattern(layer_name, filter_index, size=150):
     return deprocess_image(img) 
 
 plt.imshow(generate_pattern('block3_conv1', 0))
+
+# ======================== 모든 층에 있는 필터를 시각화해 보기 ======================== #
+
+layer_name = ['block1_conv1', 'block2_conv1', 'block3_conv1']
+size = 64
+margin = 5
+
+def create_img(layer_name):
+  results = np.zeros((8 * size + 7 * margin, 8 * size + 7 * margin, 3), dtype='uint8')
+  for i in range(8):
+    for j in range(8):
+      filter_img = generate_pattern(layer_name, i + (j*8), size=size)
+
+      horizontal_start = i * size + i * margin
+      horizontal_end = horizontal_start + size
+      vertical_start = j * size + j * margin
+      vertical_end = vertical_start + size
+      results[horizontal_start: horizontal_end, vertical_start: vertical_end, :] = filter_img
+
+  plt.figure(figsize=(10, 10))
+  plt.imshow(results)
+
+for name in layer_name:
+  create_img(name)
