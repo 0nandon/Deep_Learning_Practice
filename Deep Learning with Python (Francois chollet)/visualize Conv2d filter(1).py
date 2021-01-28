@@ -1,4 +1,10 @@
 
+# feature map의 활성화 이미지를 출력하여, 각 특성맵의 특징을 시각화한다.
+
+# 1. 상위 층으로 갈수록 활성화는 점점 더 추상적으로 되고 시각적으로 이해하기 어려워진다.
+# 2. 비어 있는 활성화가 층이 깊어짐에 따라 늘어난다. 첫 번째 층에서는 모든 필터가 입력 이미지에 활성화되었지만
+#    층을 올라가면서 활성화되지 않는 필터들이 생긴다. 필터에 인코딩된 패턴이 입력 이미지에 나타나지 않았다는 것을 의미한다.
+
 import os, shutil
 import matplotlib.pyplot as plt
 import numpy as np
@@ -27,11 +33,6 @@ plt.colorbar()
 # ================= 네트워크의 모든 활성화를 출력 ================= #
 
 layer_names = []
-for layer in model.layers[:8]:
-  layer_names.append(layer.name)
-
-layer_names.append(layer.name)
-
 for layer in model.layers[:8]:
   layer_names.append(layer.name)
 
