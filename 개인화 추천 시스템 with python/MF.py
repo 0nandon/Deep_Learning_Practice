@@ -1,3 +1,10 @@
+
+# MF(Matrix Factorization)
+
+# MF 알고리즘은 CF 알고리즘과 달리 model-based 알고리즘이다.
+# 모델을 구축하기만 하면 결과값을 빨리 도출해 내지만, 모델을 생성하는 과정에서 많은 계산값이 소모된다.
+# 전체 사용자의 평가 패턴을 기반으로 모델을 구성하기 때문에 데이터가 가지고 있는 weak signal을 더 잘 잡아내는 장점이 있다.
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -10,6 +17,10 @@ ratings = ratings[['user_id', 'movie_id', 'rating']].astype(int) # timestamp 제
 class NEW_MF():
   def __init__(self, ratings, K, alpha, beta, iterations, verbose = True):
     self.R = np.array(ratings)
+    
+    # 사용자 아이디와 아이템 아이디가 연속값이 아닐 수 있으므로, self.R을 numpy 배열로 
+    # 변환하면서 중간이 비어있는 실제 아이디와 R의 인덱스가 일치하지 않게 된다.
+    
     item_id_index = [] # 현재 아이템의 아이디와 인덱스를 저장
     index_item_id = []
     for i, one_id in enumerate(ratings):
@@ -33,6 +44,7 @@ class NEW_MF():
     self.iterations = iterations # epoch 수
     self.verbose = verbose # 중간 학습과정을 출력할 것인가
   
+  # test case를 전처리 한다.
   def set_test(self, ratings_test):
     test_set = []
     for i in range(len(ratings_test)):
@@ -63,6 +75,7 @@ class NEW_MF():
     self.errors = np.array(self.errors)
     return np.sqrt(np.mean(self.errors**2))
   
+  # 학습 
   def test(self):
     self.P = np.random.normal(scale = 1./self.k, size = (self.num_users, self.k))
     self.Q = np.random.normal(scale = 1./self.k, size = (self.num_items, self.k))
@@ -86,6 +99,7 @@ class NEW_MF():
           print("Iteration : %d ; Train RMSE = %.4f ; Test RMSE = %.4f" % (i+1, rmse1, rmse2))
     return training_process
   
+  # 경사 하강법 시행
   def sgd(self):
     for i, j, r in self.samples:
       prediction = self.get_prediction(i, j)
@@ -110,4 +124,4 @@ class NEW_MF():
 R_temp = ratings.pivot(index='user_id', columns='movie_id', values='rating').fillna(0)
 mf = NEW_MF(R_temp, K=30, alpha=0.001, beta=0.02, iterations=100, verbose=True)
 test_set = mf.set_test(ratings_test)
-result = mf.test()
+result = mf.test() # 학습 시행
