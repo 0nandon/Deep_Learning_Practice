@@ -94,4 +94,4 @@ history = model.fit(x_train, y_train,
                     batch_size=32,
                     validation_data=(x_val, y_val))
 
-model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['acc'])
+model.save_weights('pre_trained_glove_model.h5')
