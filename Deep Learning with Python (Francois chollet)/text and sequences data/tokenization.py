@@ -14,7 +14,7 @@ for sample in samples:
     if word not in token_index:
       token_index[word] = len(token_index) + 1
     
-max_length = 10
+max_length = 10.
 
 results = np.zeros(shape=(len(samples), max_length, max(token_index.values()) + 1))
 
