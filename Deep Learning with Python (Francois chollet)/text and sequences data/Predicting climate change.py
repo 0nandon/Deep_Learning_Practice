@@ -116,7 +116,9 @@ plt.show()
 
 # GRU 신경망을 사용하여, 데이터 시퀀스를 고려한 학습을 진행해본다.
 input = Input(shape = (lookback // step, float_data.shape[-1]))
-R = GRU(32)(R)
+R = GRU(32,
+       dropouyt = 0.2,
+       recurrent_dropout = 0.2)(R) # overfit을 줄이기 위해 GRU 층에 순환 드롭아웃을 사용한다.
 R = Dense(1)(R)
 model = Model(inputs = [input], output = R)
 
