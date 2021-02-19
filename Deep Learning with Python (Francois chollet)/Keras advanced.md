@@ -37,7 +37,7 @@ model.compile(optimizer = 'rmsprop', loss = 'categorical_crossentropy', metrics=
 아래는 예시 코드이다.
 ```python
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, Dense, Activation
+from tensorflow.keras.layers import Input, Dense, Activation, Conv1D, Maxpooling1D, GlobalMaxPooling1D
 
 vocabulary_size = 50000
 num_income_groups = 0
@@ -62,5 +62,5 @@ gender_prediction = Dense(1, activation='sigmoid', name='gender')(x)
 model = Model(posts_input, [age_predictions, income_predictions, gender_predictions])
 model.compile(optimizer='rmsprop',
               loss = ['mse', 'categorical_crossentropy', 'binary_crossentropy'],
-              loss_weights = [0.25, 1., 10.])
+              loss_weights = [0.25, 1., 10.]) # 각 손실함수 값에 가중치를 부여한다.
 ```
