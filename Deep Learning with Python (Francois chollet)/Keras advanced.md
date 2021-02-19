@@ -80,3 +80,27 @@ model.compile(optimizer='rmsprop',
  > 공간 방향으로는 정보를 섞제 않는다.(spatial relation을 고려하지 않는다.) 따라서, 채널 방향의 특성 학습과 공간 방향의 특성학습을 분리하는데
  > 도움을 준다. 또한, 이 합성곱은 특성 맵의 채널 수를 줄여서(dimension reduction), 가중치의 개수를 줄이는 목적으로도 자주 사용된다.
  > 특성 맵의 채널 수보다, 1 * 1 합성곱 필터의 수를 줄이면 dimension reduction 효과를 줄 수 있다. 이러한 형태를 bottle neck이라고 부른다.
+ 
+ 아래는 예시 코드이다.
+ ```python
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Conv1D, AveragePooling2D
+
+# 여기서 x는 4D 텐서라고 하자.
+branch_a = Conv2D(128, 1, activation='relu', strides=2)(x)
+
+branch_b = Conv2D(128, 1, activation='relu')(x)
+branch_b = Conv2D(128, 3, activation='relu', strides=2)(branch_b)
+
+branch_c = AveragePooling2D(3, strides=2)(x)
+branch_c = Conv2D(128, 3, activation='relu')(branch_c)
+
+branch_d = Conv2D(128, 1, activation='relu')(x) # 1*1 합성곱
+branch_d = Conv2D(128, 3, activation='relu')(branch_d)
+branch_d = Conv2D(128, 3, activation='relu', strides=2)(branch_d)
+
+output = concatenate([branch_a, branch_b, branch_c, branch_d])
+ ```
+ 
+ ### 잔차 연결(residual connection)
+ 
