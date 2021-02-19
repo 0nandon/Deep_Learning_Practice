@@ -103,4 +103,25 @@ output = concatenate([branch_a, branch_b, branch_c, branch_d])
  ```
  
  ### 잔차 연결(residual connection)
+ 잔차 연결은 대규모 딥러닝 모델에서 흔히 나타나는 두 가지 문제인 그래디언트 소실 문제(Gradient vanishing problem)과
+ 표현 병목(representational bottleneck)을 해결했다. 일반적으로 10개 층 이상을 가진 모델에 잔차 연결을 추가하면
+ 도움이 된다. 잔차 연결은 하위층의 출력이 상위층의 출력에 더해지는 형태로 구현된다.
  
+ 아래는 예시 코드이다.
+ ```python
+ # ...
+ y = Conv2D(128, 3, activation='relu', padding='same')(x)
+ y = Conv2D(128, 3, activation='relu', padding='same')(y)
+ y = Conv2D(128, 3, activation='relu', padding='same')(y)
+ 
+ y = add([y, x]) # 하위층의 출력과 상위층의 출력을 더한다.
+ # ...
+ ```
+ 
+ > **Note 딥러닝의 표현 병목** <br>
+ > 표현 병목 현상은 CNN에서 풀링을 할 때, 특성맵의 크기가 작아지면서 정보가 손실되는 현상을 말한다.
+ 
+ > **Note 그레디언트 소실 문제**
+ > 심층 신경망을 훈련하는 데 사용되는 핵심 알고리즘인 역전파는 출력 손실에서 얻은 피드백 신호를 하위 층에
+ > 전파한다. 피드백 신호가 깊이 쌓인 층을 통과하여 전파되면 신호가 아주 작아지거나 완전히 사라질 수도 있다.
+ > 이렇게 되면 네트워크가 훈련되지 않는다.
