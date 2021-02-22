@@ -126,3 +126,5 @@ output = concatenate([branch_a, branch_b, branch_c, branch_d])
  > 전파한다. 피드백 신호가 깊이 쌓인 층을 통과하여 전파되면 신호가 아주 작아지거나 완전히 사라질 수도 있다.
  > 이렇게 되면 네트워크가 훈련되지 않는다. 이러한 문제를 Gradient vanishing problem 이라고 한다. RNN에서는
  > LSTM으로 이러한 문제를 해결하였고, 다른 신경망에서는 잔차연결로 이러한 문제를 보완한다.
+
+### 가중치 재사
