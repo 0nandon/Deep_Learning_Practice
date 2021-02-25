@@ -127,4 +127,4 @@ output = concatenate([branch_a, branch_b, branch_c, branch_d])
  > 이렇게 되면 네트워크가 훈련되지 않는다. 이러한 문제를 Gradient vanishing problem 이라고 한다. RNN에서는
  > LSTM으로 이러한 문제를 해결하였고, 다른 신경망에서는 잔차연결로 이러한 문제를 보완한다.
 
-### 가중치 재사
+### 가중치 재사용
