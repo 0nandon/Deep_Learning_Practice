@@ -10,7 +10,7 @@
 * 훈련과 검증 지표를 로그에 기록하거나 모델이 학습한 표현이 업데이트될 때마다 시각화한다.
 
 
-##ModelCheckPoint와 EarlyStopping 콜백
+## ModelCheckPoint와 EarlyStopping 콜백
 
 ```python
 import keras
