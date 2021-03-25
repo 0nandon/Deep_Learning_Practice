@@ -9,6 +9,9 @@
 * 훈련하는 동안 하이퍼 파라미터 값을 동적으로 조정한다. (ex : 옵티마이저 learning rate, l2 규제 정도, etc)
 * 훈련과 검증 지표를 로그에 기록하거나 모델이 학습한 표현이 업데이트될 때마다 시각화한다.
 
+
+##ModelCheckPoint와 EarlyStopping 콜백
+
 ```python
 import keras
 
@@ -34,3 +37,4 @@ model.fit(x, y,
           callbacks = callbacks_list,
           validation_data = (x_val, y_val))
 ```
+## ReduceLROnPlateau 콜백
