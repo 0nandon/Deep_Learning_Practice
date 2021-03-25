@@ -23,4 +23,8 @@ callbacks_list = [
     save_best_only = True, # 훈련하는 동안 가장 최적의 모델만 저장한다.
   )
 ]
+
+#...
+
+model.compile(optimizer = 'rmsprop')
 ```
