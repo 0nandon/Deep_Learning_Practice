@@ -13,6 +13,14 @@
 import keras
 
 callbacks_list = [
-  
+  keras.callbacks.EarlyStopping( # 성능 향상이 멈추면 훈련을 중지한다.
+    monitor = 'val_acc', # 모델의 검증 정확도를 모니터링한다.
+    patience = 1, # 1 에포크보다 더 길게 검증 정확도가 향상되지 않으면, 훈련을 중지한다.
+  ),
+  keras.callbacks.ModelCheckpoint(
+    filepath = 'my_model.h5',
+    monitor = 'val_loss',
+    save_best_only = True, # 훈련하는 동안 가장 최적의 모델만 저장한다.
+  )
 ]
 ```
