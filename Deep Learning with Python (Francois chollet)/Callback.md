@@ -26,5 +26,11 @@ callbacks_list = [
 
 #...
 
-model.compile(optimizer = 'rmsprop')
+model.compile(optimizer = 'rmsprop',
+              loss = 'binary_crossentropy',
+              metrics = ['acc'])
+model.fit(x, y,
+          epochs = 10,
+          callbacks = callbacks_list,
+          validation_data = (x_val, y_val))
 ```
