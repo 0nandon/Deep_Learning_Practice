@@ -38,3 +38,15 @@ model.fit(x, y,
           validation_data = (x_val, y_val))
 ```
 ## ReduceLROnPlateau 콜백
+이 콜백을 사용하면 검증 손실이 향상되지 않을 때, 학습률을 작게 할 수 있다. 손실 곡선이 평탄할 때,
+학습률을 작게 하거나 크게 하면 훈련 도중 지역 최솟값을 효과적으로 빠져나올 수 있다.
+
+```python
+callbacks_list = [
+  keras.callbacks.ReduceLROnPlateau(
+    monitor = 'val_acc',
+    factor = 0.1, # 콜백이 호출될 때, 학습률을 10배 줄인다.
+    patience = 10, # 검증 손실이 10번동안 향상되지 않으면 콜백이 호출됨
+  )
+]
+```
