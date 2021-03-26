@@ -50,3 +50,35 @@ callbacks_list = [
   )
 ]
 ```
+
+## 자신만의 콜백 만들기
+내장 콜백에서 제공하지 않은 특수한 행동이 훈련 도중 필요하다면 자신만의 콜백을 만들 수 있다.
+
+* on_epoch_begin : 각 에포크가 시작할 때 호출한다.
+* on_epoch_end : 각 에포크가 끝날 때 호출한다.
+* on_batch_begin : 각 배치 처리가 시작되기 전에 호출한다.
+* on_batch_end : 각 배치 처리가 끝난 후에 호출한다.
+* on_train_begin : 훈련이 시작될 때 호출한다.
+* on_train_end : 훈련이 끝날 때 호출한다.
+
+```python
+import keras
+import numpy as np
+
+class ActivationLogger(keras.callbacks.Callback):
+  def set_model(self, model): # 호출하는 모델에 대한 정보를 전달하기 위해 훈련 전에 호출한다.
+    self.model = model
+    layer_outputs = [layer.outputs for layer in model.layers]
+    self.activations_model = keras.models.Model(inputs = model.input, outputs = layer_outputs)
+  
+  def on_epoch_end(self, epoch, logs = None): # 매 에포크가 끝날 때 마다 호출한다.
+    if self.validation_data is None:
+      raise RuntimeError('Requires validation_data.')
+      
+    validation_sample = self.validation_data[0][0:1]
+    activations = self.activations_model.predict(validation_sample)
+    
+    f = open('activations_at_epoch_' + str(epoch) + '.npz', 'wb')
+    np.savez(f, activations)
+    f.close()
+```
