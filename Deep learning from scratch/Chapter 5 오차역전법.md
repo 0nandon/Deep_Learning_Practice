@@ -28,12 +28,9 @@ class MulLayer:
 ```python
 class AddLayer:
   def __init__(self):
-    self.x = None
-    slef.y = None
+    pass  # 덧셉 과정은 초기화가 필요없다.
   
   def forward(self, x, y):
-    self.x = x
-    self.y = y
     out = x + y
     return out
   
@@ -41,4 +38,38 @@ class AddLayer:
     dx = dout * 1
     dy = dout * 1
     return dx, dy
+```
+### 5.5 활성화 함수 계층 구현하기
+#### 5.5.1 ReLU 계층
+```python
+class ReLU:
+  def __ini__(self):
+    self.mask = None
+   
+  def forward(self, x):
+    self.mask = (x <= 0)
+    out = x.copy()
+    out[self.mask] = 0
+    return out
+  
+  def backward(self, dout):
+    dout[self.mask] = 0
+    dx = dout
+    return dx
+```
+#### 5.5.2 Sigmoid 계층
+```python 
+class Sigmoid:
+  def __init__(self):
+    self.out = None
+  
+  def forward(self, x):
+    out = 1 / (1 + np.exp(-x))
+    self.out = out
+    return out
+  
+  def backward(self, dout):
+    dx = dout * (1.0 - self.out) * self.out
+    return dx
+
 ```
