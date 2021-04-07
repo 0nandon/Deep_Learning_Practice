@@ -121,8 +121,3 @@ class simpleNet:
         loss = np.cross_entropy_error(z, t)
         return loss
 ```
-        
-        
-    
-
-```
