@@ -43,7 +43,7 @@ class AddLayer:
 #### 5.5.1 ReLU 계층
 ```python
 class ReLU:
-  def __ini__(self):
+  def __init__(self):
     self.mask = None
    
   def forward(self, x):
@@ -72,4 +72,27 @@ class Sigmoid:
     dx = dout * (1.0 - self.out) * self.out
     return dx
 
+```
+### 5.6 Affine/Softmax 계층 구현하기
+#### 5.6.1 Affine 계층
+```python
+class Affine:
+  def __init__(self):
+    self.W = W
+    self.b = b
+    self.x = None
+    self.dW = None
+    self.db = None
+  
+  def forward(self, x):
+    self.x = x
+    a = np.dot(x, W) + b
+    return a
+   
+  def backward(self, dout):
+    dx = np.dot(dout, self.W.T)
+    self.dW = np.dot(self.x.T, dout)
+    self.db = dout
+    
+    return dx
 ```
