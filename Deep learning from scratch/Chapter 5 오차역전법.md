@@ -96,3 +96,4 @@ class Affine:
     
     return dx
 ```
+#### 5.6.2 Softmax-with-Loss 계층
