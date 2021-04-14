@@ -35,3 +35,19 @@ class Momentum:
 신경망 학습에서 학습률은 매우 중요하다. 이 값이 너무 작으면 학습 시간이 길어지고, 너무 크면 발산하여 학습이 제대로 이루어지지 않는다.
 이 학습률을 정하는 효과적 기술로 학습률 감소(learning rate decay)가 있다. 이는 학습을 진행해 나가면서 점점 학습률을 줄여나가는 방법으로,
 이러한 아이디어를 채택한 최적화 방식이 바로 AdaGrad이다.
+```python
+class AdaGrad:
+  def __init__(self,lr=0.01);
+    self.lr = lr
+    self.h = None
+    
+  def update(self, params, grads):
+    if self.h is None:
+      self.h = {}
+      for key, val in params.items():
+        self.h[key] = np.zeros_like(val)
+        
+      for key in params.keys():
+        self.h[key] += grads[key] * grads[key]
+        params[key] -= self.lr * grad[key] / (np.sqrt(self.h[key]) + 1e-7) 
+```
