@@ -51,3 +51,11 @@ class AdaGrad:
         self.h[key] += grads[key] * grads[key]
         params[key] -= self.lr * grad[key] / (np.sqrt(self.h[key]) + 1e-7) 
 ```
+### 4. Adam
+Adam은 요약하자면, AdaGrad와 모멘텀의 기법을 서로 합친 최적화 방식이라고 볼 수 있다. Adam은 하이퍼파라미터를 3개를 설정한다.
+하나는 학습률, 하나는 일차 모멘텀용 계수, 나머지 하나는 이차 모멘텀용 계수이다.
+
+### 5. 요약
+SGD, Momentum, AdaGrad, Adam의 네 후보 중 항상 뛰어난 최적화 방식은 없다. 문제에 따라, 효과적인 최적화 방식이 있으므로,
+보통은 한개씩 성능을 비교해 본 후 결정한다. Adam 같은 경우 대부분의 문제에서 만족할 만한 성능을 보이므로, 바로 Adam을 채택하는
+경우도 많다.
