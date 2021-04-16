@@ -10,10 +10,15 @@
 * L1
 ```python
 def reg_loss(loss, l1=0.1):
-  return loss + l1 * np.sum(np.abs(w)) # 손실함수에 l1 노름을 더한다.
+  return loss + l1 * np.sum(np.abs(W)) # 손실함수에 l1 노름을 더한다.
 ```
 * L2
 ```python
 def reg_loss(loss, l2=0.1):
-  return loss + (l2 / 2) * np.sum(w ** 2) # 손실함수에 l2 노름을 더한다. 
+  return loss + (l2 / 2) * np.sum(W ** 2) # 손실함수에 l2 노름을 더한다. 
+```
+* L∞
+```python
+def reg_loss(loss, l_max=0.1):
+  return loss + l_max * np.maximum(np.abs(W)) # 손실함수에 Max 노름을 더한다.
 ```
