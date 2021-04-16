@@ -22,3 +22,11 @@ def reg_loss(loss, l2=0.1):
 def reg_loss(loss, l_max=0.1):
   return loss + l_max * np.maximum(np.abs(W)) # 손실함수에 Max 노름을 더한다.
 ```
+
+보통 L1, L2 노름을 같이 사용한다.
+```python
+def reg_loss(loss, l1=0.1, l2=0.1):
+  return loss + l1 * np.sum(np.abs(W)) + (l2 / 2) * np.sum(W ** 2)
+```
+
+### 
