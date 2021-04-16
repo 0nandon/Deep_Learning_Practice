@@ -5,7 +5,15 @@
 
 ### 가중치 규제 (l2 norm)
 가중치 규제는 손실함수에 노름을 더하여, 가중치를 감소(weight decay)를 시키는 방식이다.
+
+노름에는 L1, L2, L∞ 이 있다.
+* L1
 ```python
-def reg(loss, l2=0.1):
-  return loss + (l2 / 2) * np.sum(w ** 2) # 손실함수에 l2 노름을 
+def reg_loss(loss, l1=0.1):
+  return loss + l1 * np.sum(np.abs(w)) # 손실함수에 l1 노름을 더한다.
+```
+* L2
+```python
+def reg_loss(loss, l2=0.1):
+  return loss + (l2 / 2) * np.sum(w ** 2) # 손실함수에 l2 노름을 더한다. 
 ```
