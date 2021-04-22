@@ -60,3 +60,11 @@ class CNN:
         out = out.reshape(N, out_h, out_w, -1).transpose(0, 3, 1, 2)
         return out
 ```
+다음은 im2col함수를 활용해서 풀링함수를 구현해 보겠다.
+
+```python
+class CNN:
+    def __init__(self, x, w, b, stride=1, pad=0):
+        self.W = W
+        
+```
