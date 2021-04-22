@@ -39,7 +39,7 @@ def im2col(input_data, filter_h, filter_w, stride=1, pad=0):
 이 함수를 이용해서 CNN을 구현한다.
 
 ```python
-class CNN:
+class Convolution:
     def __init__(self, x, w, b, stride=1, pad=0):
         self.W = W
         self.b = b
@@ -50,8 +50,8 @@ class CNN:
         FN, C, FH, FW = self.W.shape
         N, C, H, W = x.shape
         
-        out_h = int((H + 2*self.pad - FH) / self.stride)
-        out_w = int((W + 2*self.pad - FW) / self.stride)
+        out_h = int(1 + (H + 2*self.pad - FH) / self.stride)
+        out_w = int(1 + (W + 2*self.pad - FW) / self.stride)
         
         self.W = self.W.reshape(FN, -1).T
         x = im2col(x, FH, FW, self.stride, self.pad)
