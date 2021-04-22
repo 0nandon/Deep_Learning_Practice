@@ -36,3 +36,27 @@ def im2col(input_data, filter_h, filter_w, stride=1, pad=0):
     col = col.transpose(0, 4, 5, 1, 2, 3).reshape(N*out_h*out_w, -1)
     return col
 ```
+이 함수를 이용해서 CNN을 구현한다.
+
+```python
+class CNN:
+    def __init__(self, x, w, b, stride=1, pad=0):
+        self.W = W
+        self.b = b
+        self.stride = stride
+        self.pad = pad
+        
+    def forward(self, x):
+        FN, C, FH, FW = self.W.shape
+        N, C, H, W = x.shape
+        
+        out_h = int((H + 2*self.pad - FH) / self.stride)
+        out_w = int((W + 2*self.pad - FW) / self.stride)
+        
+        self.W = self.W.reshape(FN, -1).T
+        x = im2col(x, FH, FW)
+        out = np.dot(x, self.W) + self.b
+        
+        out = out.reshape(N, out_h, out_w, -1).transpose(0, 3, 1, 2)
+        return out
+```
