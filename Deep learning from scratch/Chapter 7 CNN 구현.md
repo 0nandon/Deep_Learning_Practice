@@ -54,7 +54,7 @@ class CNN:
         out_w = int((W + 2*self.pad - FW) / self.stride)
         
         self.W = self.W.reshape(FN, -1).T
-        x = im2col(x, FH, FW)
+        x = im2col(x, FH, FW, self.stride, self.pad)
         out = np.dot(x, self.W) + self.b
         
         out = out.reshape(N, out_h, out_w, -1).transpose(0, 3, 1, 2)
@@ -63,8 +63,23 @@ class CNN:
 다음은 im2col함수를 활용해서 풀링함수를 구현해 보겠다.
 
 ```python
-class CNN:
-    def __init__(self, x, w, b, stride=1, pad=0):
-        self.W = W
+class Pooling:
+    def __init__(self, x, pool_h, pool_w, stride=1, pad=0):
+        self.pool_h = pool_h
+        self.pool_w = pool_w
+        self.stride = stride
+        self.pad = pad
         
+    def forward(self, x):
+        N, C, H, W = x.shape
+        out_h = int(1 + (H - self.pool_h) / self.stride)
+        out_w = int(1 + (W - self.pool_w) / self.stride)
+        
+        col = im2col(x, self.pool_h, self.pool_w, self.stride, self.pad)
+        col = col.reshape(-1, self.pool_h * self.pool_w)
+        
+        out = np.max(col, axis = 1)
+        out = out.reshape(N, out_h, out_w, -1).transpose(0, 3, 1, 2)
+        
+        return out
 ```
