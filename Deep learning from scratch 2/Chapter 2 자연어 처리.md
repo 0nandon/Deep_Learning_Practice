@@ -31,3 +31,21 @@ def preprocess(text):
   
   return corpus, word_to_id, id_to_word
 ```
+
+#### 단어의 분산 표현
+단어를 하나의 벡터로 표현하는 것을 '단어의 분산 표현'(distributional representation)이라고 한다.
+
+#### 단어의 분포 가설
+'단어의 의미는 주변 단어에 의해 형성된다'라는 가설이 바로 단어의 분포 가설(distributional hypothesis)이라고 한다.
+분포 가설이 말하고자 하는 바는 매우 간단하다. 단어 자체에는 의미가 없고, 그 단어가 사용된 '맥락'이 의미를 형성한다는 것이다.
+
+#### 동시발생 행렬
+단어의 분포 가설을 활용하여 각 단어의 동시발생 행렬을 만들어 볼것이다.
+
+```python
+def create_co_matrix(corpus, vocab_size, window_size=1):
+  corpus_size = len(corpus)
+  co_matrix = np.zeros((vocab_size, vocab_size), dtype=np.int32)
+  
+  for idx, word_id in enumerate(corpus):
+```
