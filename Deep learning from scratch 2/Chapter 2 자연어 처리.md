@@ -3,7 +3,7 @@
 시소러스는 (기본적으로는) 유의어 사전으로, '뜻이 같은 단어(동의어)'나 '뜻이 비슷한 단어(유의어)'가 한 그룹으로
 분류되어 있다. 보통 각 단어의 관계를 그래프 구조로 정의한다.
 
-시소러스의 문제점은 다음과 같다.
+#### 시소러스의 문제점은 다음과 같다.
 * 시대 변화에 대응하기 어렵다.
 * 사람을 쓰는 비용이 크다.
 * 단어의 미묘한 차이를 표현할 수 없다.
@@ -14,9 +14,20 @@
 
 #### 파이썬으로 말뭉치 전처리하기
 ```python
-text = 'You say goodbye ane I say hello.'
-
-text = text.lower()
-text = text.replace('.', ' .')
-text = text.split(' ')
+def preprocess(text):
+  text = text.lower()
+  text = text.replace('.', ' .')
+  words = text.split(' ')
+  
+  word_to_id = {}
+  id_to_word = {}
+  for word in words:
+    if word not in word_to_id:
+      new_id = len(word_to_id)
+      word_to_id[word] = new_id
+      id_to_word[new_id] = word
+  
+  corpus = np.array([word_to_id[w] for w in words])
+  
+  return corpus, word_to_id, id_to_word
 ```
