@@ -123,7 +123,7 @@ def most_similar(query, word_to_id, id_to_word, word_matrix, top=5):
 
 이러한 문제를 해결하기 위해 점별 상호정보량(Pointwise Mutual Information, PMI)이라는 척도를 사용한다.
 #### PMI
-> PMI(x, y) = log<sub>2</sub>(<sup>P(x,y)</sup> / <sub>P(x)P(y)</sub>
+> PMI(x, y) = log<sub>2</sub>(<sup>P(x,y)</sup> / <sub>P(x)P(y)</sub>)
 
 PMI는 각 단어의 본래 빈도수 별 동시 발생수를 고려하여, 위와 같은 문제를 해결했다.
 그러나 PMI는 치명적인 문제를 가지고 있었는데, 바로 두 단어의 동시발생수가 0이면
