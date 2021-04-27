@@ -151,7 +151,8 @@ def ppmi(C, verbose=False, eps=1e-8):
         cnt += 1
         if cnt % (total // 100) == 0:
           print()
-   returm M
+          
+  returm M
 ```
 
 
