@@ -54,5 +54,34 @@ def create_co_matrix(corpus, vocab_size, window_size=1):
       
       if left_idx >= 0:
         left_owrd_id = corpus[left_idx]
-    
+        co_matrix[word_id, left_word_id] += 1
+      if right_idx < corpus_size:
+        right_word_id = corpus[right_idx]
+        co_matrix[word_id, right_word_id] += 1
+  return co_matrix
 ```
+
+#### 벡터 간 유사도
+벡터 사이의 유사도를 측정하는 방법은 다양하다. 대표적으로 벡터의 내적이나, 유클리드 거리 등을 꼽을 수 있다.
+그 외에도 다양하지만, 단어 벡터의 유사도를 나타낼 때는 코사인 유사도를 자주 이용한다.
+
+```python
+def cos_similarity(x, y, eps=1e-8):
+  nx = x / np.sqrt(np.sum(x**2) + epx)
+  ny = y / np.sqrt(np.sum(y**2) + eps)
+  return np.dot(nx, ny)
+```
+이 함수를 활용하면 단어 벡터의 유사도를 다음과 같이 구할 수 있다.
+
+```python
+text = 'You say goodbye and I say hello'
+corpus, word_to_id, id_to_word = preprocess(text)
+vocab_size = len(word_to_id)
+C = creat_to_matrix(corpus, vocab_size)
+
+c0 = C[word_to_id['You']]
+c1 = C[word_to_id['i']]
+print(cos_similarity(c0, c1))
+```
+
+
