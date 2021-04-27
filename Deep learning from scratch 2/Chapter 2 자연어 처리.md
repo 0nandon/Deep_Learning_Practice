@@ -144,7 +144,7 @@ def ppmi(C, verbose=False, eps=1e-8):
   
   for i in range(C.shape[0]):
     for j in range(C.shape[1]):
-      pmi = np.log2(C[i,j] * N / (S[j] * S[i]) + eps)
+      pmi = np.log2(C[i,j] * N / (S[j] * S[i]) + eps) # ㅇ
       M[i, j] = max(0, pmi)
       
       if verbose:
@@ -153,6 +153,25 @@ def ppmi(C, verbose=False, eps=1e-8):
           print()
           
   returm M
+```
+PPMI 함수도 문제가 많다. corpus의 크기가 커질 수록, 단어의 벡터 차원도 함께 증가한다는 것이다.
+또한, 막상 PPMI지수로 행렬 벡터를 만들어 버리면 원소의 대부분이 0으로 채워지는 sparse matrix가
+돼버린다는 단점이 있다. 다르게 표현하면, 각 원소의 '중요도'가 낫다는 뜻이다. 더구나 이런 벡터는
+노이즈가 약하고, 견고하지 못하다는 약점이 있다.
+
+#### 차원 감소(dimensionality reduction)
+차원 감소는 문자 그대로 벡터의 차원을 줄이는 방법을 말한다. 중요한 정보는 최대한 유지하면서 줄이는게 핵심이다.
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+text = 'You say goodbye and I say hello'
+corpus, word_to_id, id_to_word = preprocess(text)
+vocab_size = len(id_to_word)
+C = create_to_matrix(corpus, vocab_size, window_size=1)
+W = ppmi(C) # PPMI 적용
+U, S, V = np.linalg.svd(W)
 ```
 
 
