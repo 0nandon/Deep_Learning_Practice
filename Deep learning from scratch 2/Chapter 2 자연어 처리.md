@@ -123,7 +123,7 @@ def most_similar(query, word_to_id, id_to_word, word_matrix, top=5):
 
 이러한 문제를 해결하기 위해 점별 상호정보량(Pointwise Mutual Information, PMI)이라는 척도를 사용한다.
 #### PMI
-$$
-PMI = log2(P(x,y)/p(x)p(y))
+>$$
+\PMI = \log{2}\frac{/P(x, y)}{/P(x)/p(y)}
 $$
 
