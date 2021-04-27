@@ -126,7 +126,32 @@ def most_similar(query, word_to_id, id_to_word, word_matrix, top=5):
 > PMI(x, y) = log<sub>2</sub>(<sup>P(x,y)</sup> / <sub>P(x)P(y)</sub>
 
 PMI는 각 단어의 본래 빈도수 별 동시 발생수를 고려하여, 위와 같은 문제를 해결했다.
+그러나 PMI는 치명적인 문제를 가지고 있었는데, 바로 두 단어의 동시발생수가 0이면
+로그함수에 0이 들어가면서 음의 무한대로 발산해버린다는 점이였다.
+이러한 문제를 해결하기 위해 PPMI라는 함수가 만들어졌다.
 
 #### PPMI
-> PPMI(x, y) = max(0, PMI(x, y)) 
+> PPMI(x, y) = max{0, PMI(x, y)}
+
+아래는 PPMI를 구현하는 소스이다.
+```python
+def ppmi(C, verbose=False, eps=1e-8):
+  M = np.zeros_like(C, dtype=np.float32)
+  N = np.sum(C)
+  S = np.sum(C, axis=0)
+  total = C.shape[0] * C.shape[1]
+  cnt = 0
+  
+  for i in range(C.shape[0]):
+    for j in range(C.shape[1]):
+      pmi = np.log2(C[i,j] * N / (S[j] * S[i]) + eps)
+      M[i, j] = max(0, pmi)
+      
+      if verbose:
+        cnt += 1
+        if cnt % (total // 100) == 0:
+          print()
+   returm M
+```
+
 
