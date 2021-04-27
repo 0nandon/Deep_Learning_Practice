@@ -83,5 +83,31 @@ c0 = C[word_to_id['You']]
 c1 = C[word_to_id['i']]
 print(cos_similarity(c0, c1))
 ```
+또한, 이러한 함수들을 활용해서 유사 단어의 랭킹을 표시 할 수 있다.
 
+```python
+def most_similar(query, word_to_id, id_to_word, word_matrix, top=5):
+  if query not in word_to_id:
+    print('%s을 찾을 수 없습니다.' % query)
+    return
+    
+  print('\n[query] ' + query)
+  query_id = word_to_id[query]
+  query_vec = word_matrix[query_id]
+  
+  vocab_size = len(id_to_word)
+  similarity = np.zeros(vocab_size)
+  for i in range(vocab_size):
+    similarity[i] = cos_similarity(word_matrix[i], query_vec)
+
+  count = 0
+  for i in (-1 * similarity).argsort():
+    if id_to_word[i] == query:
+      continue
+    print(' %s: %s' % (id_to_word[i], similarity[i]))
+    
+    count += 1
+    if counmt >= top:
+      return
+```
 
