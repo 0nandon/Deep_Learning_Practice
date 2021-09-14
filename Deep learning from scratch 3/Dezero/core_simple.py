@@ -88,8 +88,8 @@ class Variable:
                 else:
                     x.grad = x.grad + gx
 
-            if x.creator is not None:
-                add_func(x.creator)
+                if x.creator is not None:
+                    add_func(x.creator)
 
         if not retain_grad:
             for y in f.outputs:
