@@ -153,8 +153,8 @@ class Mul(Function):
         return y
 
     def backward(self, gy):
-        dx0 = gy * self.inputs[1]
-        dx1 = gy * self.inputs[0]
+        dx0 = gy * self.inputs[1].data
+        dx1 = gy * self.inputs[0].data
         return dx0, dx1
 
 
