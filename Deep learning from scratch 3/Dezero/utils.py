@@ -7,19 +7,6 @@ from dezero import Variable
 from dezero import cuda
 import graphviz 
 
-
-# change dot langauage to img
-def save_graph_as_svg(dot_string, output_file_name):
-    if type(dot_string) is str:
-        g = graphviz.Source(dot_string)
-    elif isinstance(dot_string, (graphviz.dot.Digraph, graphviz.dot.Graph)):
-        g = dot_string
-    g.format='svg'
-    g.filename = output_file_name
-    g.directory = '/content'
-    g.render(view=False)
-    return g
-
 # =============================================================================
 # Visualize for computational graph
 # =============================================================================
