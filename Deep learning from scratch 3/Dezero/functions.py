@@ -177,8 +177,9 @@ class Max(Function):
         gy_flatten = gy.reshape(-1)
         f = GetItemGrad(self.slices, self.in_flatten_shape)
         gx = f(gy_flatten)
-
-        utils.swap(list(range(x.ndim)), self.axis, -1)
+        
+        t = list(range(x.ndim))
+        utils.swap(t, self.axis, -1)
         gx = gx.reshape(*self.in_roll_shape).transpose(*t)
         return gx
 
