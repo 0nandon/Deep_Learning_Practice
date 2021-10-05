@@ -1,22 +1,32 @@
 import numpy as np
+import dezero
+from dezero import cuda, utils
 from dezero.core import Function, Variable, as_variable, as_array
-from dezero import utils, cuda
 
-# sin
+
+# =============================================================================
+# Basic functions: sin / cos / tanh / exp / log
+# =============================================================================
 class Sin(Function):
     def forward(self, x):
-    	y = np.sin(x)
+        xp = cuda.get_array_module(x)
+        y = xp.sin(x)
         return y
 
     def backward(self, gy):
         x, = self.inputs
         gx = gy * cos(x)
         return gx
-	
-# cos
+
+
+def sin(x):
+    return Sin()(x)
+
+
 class Cos(Function):
     def forward(self, x):
-    	y = np.cos(x)
+        xp = cuda.get_array_module(x)
+        y = xp.cos(x)
         return y
 
     def backward(self, gy):
@@ -24,22 +34,49 @@ class Cos(Function):
         gx = gy * -sin(x)
         return gx
 
-# tanh
+
+def cos(x):
+    return Cos()(x)
+
+
 class Tanh(Function):
     def forward(self, x):
-        y = np.tanh(x)
+        xp = cuda.get_array_module(x)
+        y = xp.tanh(x)
         return y
 
     def backward(self, gy):
-        y = self.outputs[0]()
+        y = self.outputs[0]()  # weakref
         gx = gy * (1 - y * y)
         return gx
 
-# reshape
+
+def tanh(x):
+    return Tanh()(x)
+
+
+class Exp(Function):
+    def forward(self, x):
+        xp = cuda.get_array_module(x)
+        y = xp.exp(x)
+        return y
+
+    def backward(self, gy):
+        y = self.outputs[0]()  # weakref
+        gx = gy * y
+        return gx
+
+
+def exp(x):
+    return Exp()(x)
+
+
+# =============================================================================
+# Tensor operations: reshape / transpose / get_item / expand_dims / flatten / max
+# =============================================================================
 class Reshape(Function):
     def __init__(self, shape):
         self.shape = shape
-        super().__init__()
 
     def forward(self, x):
         self.x_shape = x.shape
@@ -50,11 +87,15 @@ class Reshape(Function):
         return reshape(gy, self.x_shape)
 
 
-# transpose
+def reshape(x, shape):
+    if x.shape == shape:
+        return as_variable(x)
+    return Reshape(shape)(x)
+
+
 class Transpose(Function):
     def __init__(self, axes=None):
         self.axes = axes
-        super().__init__()
 
     def forward(self, x):
         y = x.transpose(self.axes)
@@ -63,18 +104,96 @@ class Transpose(Function):
     def backward(self, gy):
         if self.axes is None:
             return transpose(gy)
-        
+
         axes_len = len(self.axes)
         inv_axes = tuple(np.argsort([ax % axes_len for ax in self.axes]))
-        gx = transpose(gy, inv_axes)
+        return transpose(gy, inv_axes)
+
+
+def transpose(x, axes=None):
+    return Transpose(axes)(x)
+
+
+class GetItem(Function):
+    def __init__(self, slices):
+        self.slices = slices
+
+    def forward(self, x):
+        y = x[self.slices]
+        return y
+
+    def backward(self, gy):
+        x, = self.inputs
+        f = GetItemGrad(self.slices, x.shape)
+        return f(gy)
+
+
+class GetItemGrad(Function):
+    def __init__(self, slices, in_shape):
+        self.slices = slices
+        self.in_shape = in_shape
+
+    def forward(self, gy):
+        xp = dezero.cuda.get_array_module(gy)
+        gx = xp.zeros(self.in_shape, dtype=gy.dtype)
+
+        if xp is np:
+            np.add.at(gx, self.slices, gy)
+        else:
+            xp.scatter_add(gx, self.slices, gy)
         return gx
 
-# sum
+    def backward(self, ggx):
+        return get_item(ggx, self.slices)
+
+
+def get_item(x, slices):
+    f = GetItem(slices)
+    return f(x)
+
+
+class Max(Function):
+    def __init__(self, axis):
+        self.axis = axis
+        super().__init__()
+
+    def forward(self, x):
+        self.in_shape = x.shape
+
+        xp = cuda.get_array_module(x)
+        x_roll = xp.rollaxis(x, self.axis, len(self.in_shape))
+        x_flatten = x_roll.reshape(-1, self.in_shape[self.axis])
+        N, H = x_flatten.shape
+
+        self.in_roll_shape = x_roll.shape
+        self.in_flatten_shape = (N, H)
+        self.slices = (np.arange(N), x_flatten.argmax(axis=1))
+
+        y = x.max(axis=self.axis)
+        return y
+
+    def backward(self, gy):
+        x, = self.inputs
+        gy_flatten = gy.reshape(-1)
+        f = GetItemGrad(self.slices, self.in_flatten_shape)
+        gx = f(gy_flatten)
+
+        utils.swap(list(range(x.ndim)), self.axis, -1)
+        gx = gx.reshape(*self.in_roll_shape).transpose(*t)
+        return gx
+
+
+def max(x, axis):
+    return Max(axis)(x)
+
+
+# =============================================================================
+# sum / sum_to / broadcast_to / average / matmul / linear
+# =============================================================================
 class Sum(Function):
     def __init__(self, axis, keepdims):
         self.axis = axis
         self.keepdims = keepdims
-        super().__init__()
 
     def forward(self, x):
         self.x_shape = x.shape
@@ -82,30 +201,19 @@ class Sum(Function):
         return y
 
     def backward(self, gy):
-        gy = utils.reshape_sum_backward(gy, self.x_shape, self.axis, self.keepdims)
+        gy = utils.reshape_sum_backward(gy, self.x_shape, self.axis,
+                                        self.keepdims)
         gx = broadcast_to(gy, self.x_shape)
         return gx
 
-# 브로드 캐스트
-class BroadcastTo(Function):
-    def __init__(self, shape):
-        self.shape = shape
-        super().__init__()
 
-    def forward(self, x):
-        self.x_shape = x.shape
-        y = np.broadcast_to(x, self.shape)
-        return y
-
-    def backward(self, gy):
-        gx = sum_to(gy, self.x_shape)
-        return gx
+def sum(x, axis=None, keepdims=False):
+    return Sum(axis, keepdims)(x)
 
 
 class SumTo(Function):
     def __init__(self, shape):
         self.shape = shape
-        super().__init__()
 
     def forward(self, x):
         self.x_shape = x.shape
@@ -117,9 +225,36 @@ class SumTo(Function):
         return gx
 
 
+def sum_to(x, shape):
+    if x.shape == shape:
+        return as_variable(x)
+    return SumTo(shape)(x)
+
+
+class BroadcastTo(Function):
+    def __init__(self, shape):
+        self.shape = shape
+
+    def forward(self, x):
+        self.x_shape = x.shape
+        xp = dezero.cuda.get_array_module(x)
+        y = xp.broadcast_to(x, self.shape)
+        return y
+
+    def backward(self, gy):
+        gx = sum_to(gy, self.x_shape)
+        return gx
+
+
+def broadcast_to(x, shape):
+    if x.shape == shape:
+        return as_variable(x)
+    return BroadcastTo(shape)(x)
+
+
 class MatMul(Function):
     def forward(self, x, W):
-        y = np.dot(x, W)
+        y = x.dot(W)
         return y
 
     def backward(self, gy):
@@ -128,21 +263,11 @@ class MatMul(Function):
         gW = matmul(x.T, gy)
         return gx, gW
 
-# MSE
-class MeanSquaredError(Function):
-    def forward(self, x0, x1):
-        diff = x0 - x1
-        y = (diff ** 2).sum() / len(diff)
-        return y
 
-    def backward(self, gy):
-        x0, x1 = self.inputs
-        diff = x0 - x1
-        gx0 = gy * diff * (2. / len(diff))
-        gx1 = -gx0
-        return gx0, gx1
+def matmul(x, W):
+    return MatMul()(x, W)
 
-# Linear transformation
+
 class Linear(Function):
     def forward(self, x, W, b):
         y = x.dot(W)
@@ -157,12 +282,18 @@ class Linear(Function):
         gW = matmul(x.T, gy)
         return gx, gW, gb
 
-# sigmoid
+
+def linear(x, W, b=None):
+    return Linear()(x, W, b)
+
+# =============================================================================
+# activation function: sigmoid / relu / softmax / log_softmax / leaky_relu
+# =============================================================================
 class Sigmoid(Function):
     def forward(self, x):
         xp = cuda.get_array_module(x)
-        # y = 1 / (np.exp(-x) + 1)
-        y = xp.tanh(x * 0.5) * 0.5 + 0.5 # better expression
+        # y = 1 / (1 + xp.exp(-x))
+        y = xp.tanh(x * 0.5) * 0.5 + 0.5  # Better implementation
         return y
 
     def backward(self, gy):
@@ -170,25 +301,38 @@ class Sigmoid(Function):
         gx = gy * y * (1 - y)
         return gx
 
-# exp
-class Exp(Function):
+
+def sigmoid(x):
+    return Sigmoid()(x)
+
+
+class ReLU(Function):
     def forward(self, x):
         xp = cuda.get_array_module(x)
-        y = xp.exp(x)
+        y = xp.maximum(x, 0.0)
         return y
 
     def backward(self, gy):
-        y = self.outputs[0]()
-        gx = gy * y
+        x, = self.inputs
+        mask = x.data > 0
+        gx = gy * mask
         return gx
 
-# softmax
+
+def relu(x):
+    return ReLU()(x)
+
+
 class Softmax(Function):
+    def __init__(self, axis=1):
+        self.axis = axis
+
     def forward(self, x):
         xp = cuda.get_array_module(x)
-        x -= x.max(axis=1, keepdims=True)
-        y = xp.exp(x)
-        return y / y.sum(axis=1, keepdims=True)
+        y = x - x.max(axis=self.axis, keepdims=True)
+        y = xp.exp(y)
+        y /= y.sum(axis=self.axis, keepdims=True)
+        return y
 
     def backward(self, gy):
         y = self.outputs[0]()
@@ -197,15 +341,41 @@ class Softmax(Function):
         gx -= y * sumdx
         return gx
 
-# softmax with cross-entropy loss
+
+def softmax(x, axis=1):
+    return Softmax(axis)(x)
+
+
+# =============================================================================
+# loss function: mean_squared_error / softmax_cross_entropy / sigmoid_cross_entropy / binary_cross_entropy
+# =============================================================================
+
+class MeanSquaredError(Function):
+    def forward(self, x0, x1):
+        diff = x0 - x1
+        y = (diff ** 2).sum() / len(diff)
+        return y
+
+    def backward(self, gy):
+        x0, x1 = self.inputs
+        diff = x0 - x1
+        gx0 = gy * diff * (2. / len(diff))
+        gx1 = -gx0
+        return gx0, gx1
+
+
+def mean_squared_error(x0, x1):
+    return MeanSquaredError()(x0, x1)
+
+
 class SoftmaxCrossEntropy(Function):
     def forward(self, x, t):
         N = x.shape[0]
         log_z = utils.logsumexp(x, axis=1)
         log_p = x - log_z
         log_p = log_p[np.arange(N), t.ravel()]
-        return -log_p.sum() / np.float32(N)
-    
+        y = -log_p.sum() / np.float32(N)
+        return y
 
     def backward(self, gy):
         x, t = self.inputs
@@ -213,72 +383,24 @@ class SoftmaxCrossEntropy(Function):
 
         gy *= 1/N
         y = softmax(x)
-
+        # convert to one-hot
         xp = cuda.get_array_module(t.data)
-        """
-        [another expression]
-        y[np.arange(N), t.data] -= 1
-        return y * gy
-        """
         t_onehot = xp.eye(CLS_NUM, dtype=t.dtype)[t.data]
         y = (y - t_onehot) * gy
         return y
 
 
-class Relu:
-    def forward(self, x):
-        y = np.maximum(x, 0)
-        return y
-
-    def backward(self, gy):
-        x = self.inputs[0]
-        mask = x.data > 0
-        return gy * mask
+def softmax_cross_entropy(x, t):
+    return SoftmaxCrossEntropy()(x, t)
 
 
-# ============================================== #
-# slice function
-class GetItem(Function):
-    def __init__(self, slices):
-        self.slices = slices
-        super().__init__()
-
-    def forward(self, x):
-        y = x[self.slices]
-        return y
-
-    def backward(self, gy):
-        x = self.inputs[0]
-        f = GetItemGrad(self.slices, x.shape)
-        return f(gy)
-
-
-class GetItemGrad(Function):
-    def __init__(self, slices, in_shape):
-        self.slices = slices
-        self.in_shape = in_shape
-        super().__init__()
-
-    def forward(self, x):
-        xp = cuda.get_array_module(x)
-        gx = xp.zeros(self.in_shape)
-
-        if xp is np:
-            np.add.at(gx, self.slices, gy)
-        else:
-            xp.scatter_add(gx, self.slices, gy)
-        return gx
-
-    def backward(self, ggx):
-        return get_item(ggx, slices)
-
-
-def get_item(x, slices):
-    return GetItem(slices)(x)
-
-# ============================================== #
-
+# =============================================================================
+# accuracy / dropout / batch_norm / embed_id
+# =============================================================================
 def accuracy(y, t):
+    """
+    [WAR] This function is not differentiable.
+    """
     y, t = as_variable(y), as_variable(t)
 
     pred = y.data.argmax(axis=1).reshape(t.shape)
@@ -287,71 +409,30 @@ def accuracy(y, t):
     return Variable(as_array(acc))
 
 
-def sin(x):
-    return Sin()(x)
-	
+def dropout(x, dropout_ratio=0.5):
+    x = as_variable(x)
 
-def cos(x):
-	  return Cos()(x)
+    if dezero.core.Config.train:
+        xp = cuda.get_array_module(x)
 
-
-def tanh(x):
-    return Tanh()(x)
-
-
-def reshape(x, shape):
-    if x.shape == shape:
-        return as_variable(x)
-    return Reshape(shape)(x)
+        mask = xp.random.rand(*x.shape) > dropout_ratio
+        scale = xp.array(1 / (1 - dropout_ratio)).astype(x.dtype)
+        out = x * mask * scale
+        return out
+    return x
 
 
-def transpose(x, axes=None):
-    return Transpose(axes)(x)
-
-
-def sum(x, axis=None, keepdims=False):
-    return Sum(axis, keepdims)(x)
-
-
-def broadcast_to(x, shape):
-    if x.shape == shape:
-        return as_variable(x)
-    return BroadcastTo(shape)(x)
-
-
-def sum_to(x, shape):
-    if x.shape == shape:
-        return as_variable(x)
-    return SumTo(shape)(x)
-
-
-def matmul(x, W):
-    return MatMul()(x, W)
-
-
-def mean_squared_error(x0, x1):
-    return MeanSquaredError()(x0, x1)
-
-
-def linear(x, W, b=None):
-    return Linear()(x, W, b)
-
-
-def sigmoid(x):
-    return Sigmoid()(x)
-
-
-def exp(x):
-    return Exp()(x)
-
-
-def softmax(x):
-    return Softmax()(x)
-
-
-def softmax_cross_entropy(x, t):
-    return SoftmaxCrossEntropy()(x, t)
-
-
-def relu(x):
-    return Relu()(x)
+# =============================================================================
+# conv2d / col2im / im2col / basic_math
+# =============================================================================
+from dezero.functions_conv import conv2d_simple
+from dezero.functions_conv import im2col
+from dezero.functions_conv import col2im
+from dezero.functions_conv import pooling_simple
+from dezero.core import add
+from dezero.core import sub
+from dezero.core import rsub
+from dezero.core import mul
+from dezero.core import div
+from dezero.core import neg
+from dezero.core import pow
