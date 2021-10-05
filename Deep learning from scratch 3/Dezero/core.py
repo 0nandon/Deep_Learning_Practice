@@ -4,10 +4,16 @@ import weakref
 import contextlib
 import dezero
 
+try:
+    import cupy
+    array_types = (np.ndarray, cupy.ndarray)
+except ImportError:
+    array_types = (np.ndarray)
 
-def as_array(x):
+
+def as_array(x, array_module=np):
     if np.isscalar(x):
-        return np.array(x)
+        return array_module.array(x)
     return x
 
 
@@ -19,6 +25,7 @@ def as_variable(obj):
 
 class Config:
     enable_backprop = True
+    train = True
 
 
 class Variable:
@@ -27,7 +34,7 @@ class Variable:
 
     def __init__(self, data, name=None):
         if data is not None:
-            if not isinstance(data, np.ndarray):
+            if not isinstance(data, array_types):
                 raise TypeError('{}은(는) 지원하지 않습니다.'.format(type(data)))
 
         self.data = data
@@ -63,8 +70,13 @@ class Variable:
     def __len__(self):
         return len(self.data)
 
-    def transpose(self):
-        return dezero.functions.transpose(self)
+    def transpose(self, *axes):
+        if len(axes) == 0:
+            axes = None
+        elif len(axes) == 1:
+            if isinstance(axes[0], (tuple, list)) or axes[0] is None:
+                axes = axes[0]
+        return dezero.functions.transpose(self, axes)
 
     def reshape(self, *shape):
         if len(shape) == 1 and isinstance(shape[0], (tuple, list)):
@@ -72,14 +84,32 @@ class Variable:
         return dezero.functions.reshape(self, shape)
     
     def sum(self, axis=None, keepdims=False):
-        return dezero.functions.sum(slef, axis, keepdims)
+        return dezero.functions.sum(self, axis, keepdims)
+
+    def max(self, axis=None):
+        return dezero.functions.max(self, axis)
 
     def cleargrad(self):
         self.grad = None
 
+    def unchain(self):
+        self.creator = None
+
+    def unchain_backward(self):
+        if self.creator is not None:
+            funcs = [self.creator]
+
+        while funcs:
+            f = funcs.pop()
+            for x in f.inputs:
+                if x.creator is not None:
+                    funcs.append(x.creator)
+                    x.unchain()
+
     def backward(self, retain_grad=False, create_graph=False):
         if self.grad is None:
-            self.grad = Variable(np.ones_like(self.data))
+            xp = dezero.cuda.get_array_module(self.data)
+            self.grad = Variable(xp.ones_like(self.data))
 
         funcs = []
         seen_set = set()
@@ -114,12 +144,24 @@ class Variable:
                 for y in f.outputs:
                     y().grad = None
 
+    def to_cpu(self):
+        if self.data is not None:
+            self.data = dezero.cuda.as_numpy(self.data)
+
+    def to_gpu(self):
+        if self.data is not None:
+            self.data = dezero.cuda.as_cupy(self.data)
+
     def __repr__(self):
         if self.data is None:
             return 'variable(None)'
 
         p = str(self.data).replace('\n', '\n' + ' ' * 9)
         return 'variable(' + p + ')'
+
+
+class Parameter(Variable):
+  pass
 
 
 class Function:
@@ -184,7 +226,7 @@ class Mul(Function):
         if x0.shape != x1.shape:
             gx0 = dezero.functions.sum_to(gx0, x0.shape)
             gx1 = dezero.functions.sum_to(gx1, x1.shape)
-        return dx0, dx1
+        return gx0, gx1
 
 
 class Neg(Function):
@@ -253,13 +295,17 @@ def no_grad():
     return using_config('enable_backprop', False)
 
 
+def test_mode():
+    return using_config('train', False)
+
+
 def add(x0, x1):
-    x1 = as_array(x1)
+    x1 = as_array(x1, dezero.cuda.get_array_module(x0.data))
     return Add()(x0, x1)
 
 
 def mul(x0, x1):
-    x1 = as_array(x1)
+    x1 = as_array(x1, dezero.cuda.get_array_module(x0.data))
     return Mul()(x0, x1)
 
 
@@ -268,22 +314,22 @@ def neg(x):
 
 
 def sub(x0, x1):
-    x1 = as_array(x1)
+    x1 = as_array(x1, dezero.cuda.get_array_module(x0.data))
     return Sub()(x0, x1)
 
 
 def rsub(x0, x1):
-    x1 = as_array(x1)
+    x1 = as_array(x1, dezero.cuda.get_array_module(x0.data))
     return Sub()(x1, x0)
 
 
 def div(x0, x1):
-    x1 = as_array(x1)
+    x1 = as_array(x1, dezero.cuda.get_array_module(x0.data))
     return Div()(x0, x1)
 
 
 def rdiv(x0, x1):
-    x1 = as_array(x1)
+    x1 = as_array(x1, dezero.cuda.get_array_module(x0.data))
     return Div()(x1, x0)
 
 
@@ -302,3 +348,4 @@ def setup_variable():
     Variable.__truediv__ = div
     Variable.__rtruediv__ = rdiv
     Variable.__pow__ = pow
+    Variable.__getitem__ = dezero.functions.get_item
