@@ -20,4 +20,22 @@ def get_array_module(x):
     return xp
   
 
+def as_numpy(x):
+    if isinstance(x, Variable):
+        x = x.data
+
+    if np.isscalar(x):
+        return np.array(x)
+    elif isinstance(x, np.ndarray):
+        return x
+    return cp.asnumpy(x)
+
+def as_cupy(x):
+    if isinstance(x, Variable):
+        x = x.data
+
+    if not gpu_enable:
+        raise Exception('쿠파이(Cupy)를 로드할 수 없습니다. 쿠파이를 설치해주세요!')
+    return cp.asarray(x)
+
   
